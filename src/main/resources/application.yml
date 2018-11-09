@@ -1,0 +1,84 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+#          lower-case-service-id: true
+          enabled: false  #注册发现
+      routes:
+      - id: hello1
+        uri: http://www.abc.com
+        predicates:
+        - Path=/aaa
+      - id: hello2
+        uri: http://www.baidu.com
+        predicates:
+        - Path=/baidu
+        filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 1   #每秒流速
+            redis-rate-limiter.burstCapacity: 1   #桶大小
+            key-resolver: "#{@apiKeyResolver}"
+#     全局filter
+      default-filters:
+#        自定义扩展
+         - TokenExtension
+         - name: Hystrix
+           args:
+             name: fallbackHystrix
+             fallbackUri: forward:/failback
+         - name : Retry
+           args:
+             retries: 1 #重试次数，默认3，不包含本次
+
+  redis:
+    host: 192.168.118.111
+    port: 6379
+    database: 1
+
+# 注册中心负载均衡
+#      - id: illegals
+#        uri: lb://WINSTAR-ILLEGAL-API
+#        predicates:
+#          - Path=/api/v1/illegals/**
+#      - id: certificates
+#        uri: lb://WINSTAR-ILLEGAL-API
+#        predicates:
+#          - Path=/api/v1/certificates/**
+#      - id: platenumbers
+#        uri: lb://WINSTAR-ILLEGAL-API
+#        predicates:
+#          - Path=/api/v1/platenumbers/**
+
+#注册中心配置
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:5000/eureka/
+
+# 熔断配置
+hystrix:
+  #threadpool:
+    #default:
+      #maximumSize: 400 #此属性设置最大线程池大小。 这是在不开始拒绝HystrixCommands的情况下可以支持的最大并发数。 请注意，此设置仅在您还设置allowMaximumSizeToDivergeFromCoreSize时才会生效。
+      #allowMaximumSizeToDivergeFromCoreSize: true #此属性允许maximumSize的配置生效。 那么该值可以等于或高于coreSize。 设置coreSize <maximumSize会创建一个线程池，该线程池可以支持maximumSize并发，但在相对不活动期间将向系统返回线程。
+  command:
+    fallbackHystrix: #--对应Hystrix里args的name，默认是"default"
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 3000 #设置熔断路由的超时时间
+
+logging:
+  level:
+    org.springframework.cloud.gateway: trace
+    org.springframework.http.server.reactive: debug
+    org.springframework.web.reactive: debug
+    reactor.ipc.netty: debug
+    com.winstar: debug
