@@ -4,10 +4,12 @@ server:
 management:
   server:
     port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: '*'
 
 spring:
-  application:
-    name: 123
   cloud:
     gateway:
       redis-rate-limiter:
@@ -60,7 +62,7 @@ spring:
         filters:
           - StripPrefix=1
       default-filters:
-        - TokenExtension   #token验证过滤器
+#        - TokenExtension   #token验证过滤器
         - name: RequestRateLimiter
           args:
             key-resolver: "#{@apiKeyResolver}"  #根据url路径限流

@@ -6,10 +6,13 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
@@ -34,8 +37,9 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 		return (exchange, chain) -> {
 			try {
 				log.debug("token验证合法性及参数验参校验filter");
-				HttpHeaders headers = exchange.getRequest().getHeaders();
-				this.requestParamCheck(headers);
+				ServerHttpRequest request = exchange.getRequest();
+				HttpHeaders headers = request.getHeaders();
+				this.requestParamCheck(headers, request);
 				String value = parseToken(headers);
 				this.accountIdHandle(headers, value);
 				return chain.filter(exchange);
@@ -69,13 +73,14 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 	 *
 	 * @param headers 请求头
 	 */
-	private void requestParamCheck(HttpHeaders headers) {
+	private void requestParamCheck(HttpHeaders headers, ServerHttpRequest request) {
 		String appId = headers.getFirst(APP_ID);
 		if (StringUtils.isNotBlank(appId)) {
 			String secureKey = redisTemplate.boundValueOps(REDIS_APPID_KEY + appId).get();
 			if (StringUtils.isNotBlank(secureKey)) {
 				//验证参数
-
+				Flux<DataBuffer> body = request.getBody();
+				DataBuffer dataBuffer = body.blockFirst();
 			}
 			throw new RuntimeException("");
 		}
@@ -95,6 +100,7 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 
 	/**
 	 * 异常时，处理内容
+	 *
 	 * @param exchange exchange对象
 	 * @return 异常信息
 	 */
