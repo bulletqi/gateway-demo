@@ -59,6 +59,7 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 			if (StringUtils.isNotBlank(value)) {
 				return value;
 			}
+			throw new RuntimeException("");
 		}
 		throw new RuntimeException("");
 	}
@@ -76,6 +77,7 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 				//验证参数
 
 			}
+			throw new RuntimeException("");
 		}
 		throw new RuntimeException("");
 	}
@@ -91,6 +93,11 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 		headers.set(ACCOUNT_ID, accountId);
 	}
 
+	/**
+	 * 异常时，处理内容
+	 * @param exchange exchange对象
+	 * @return 异常信息
+	 */
 	private Mono<Void> buildResponse(ServerWebExchange exchange) {
 		return Mono.empty();
 	}

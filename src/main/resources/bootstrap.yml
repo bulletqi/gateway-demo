@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: winstar-api-gateway
+
+info:
+  app:
+    name: winstar-api-gateway
+    description: 网关接入服务
+    version: 1.0.0
+    author: qilucheng
+
+
