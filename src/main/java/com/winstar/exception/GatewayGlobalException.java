@@ -52,7 +52,7 @@ public class GatewayGlobalException extends DefaultErrorWebExceptionHandler {
 
 	private CodeMessage exceptionHandle(Throwable throwable) {
 		log.error("网关统一异常拦截", throwable);
-		return ExceptionCodes.GLOBALEXCEPTION;
+		return ExceptionCodes.GLOBAL_EXCEPTION;
 	}
 
 }

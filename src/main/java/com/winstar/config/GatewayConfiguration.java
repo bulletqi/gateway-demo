@@ -15,6 +15,7 @@ public class GatewayConfiguration {
 
 	/**
 	 * traceId签发
+	 *
 	 * @return globalFilter
 	 */
 	@Bean
@@ -22,11 +23,11 @@ public class GatewayConfiguration {
 	public GlobalFilter traceIdFilter() {
 		return (exchange, chain) -> {
 			String traceId = UUID.randomUUID().toString();
-			log.debug("new request traceId: [{}]",traceId);
-			exchange.getRequest().getHeaders().set("trace-id", traceId);
-			return chain.filter(exchange);
+			log.debug("new request traceId: [{}]", traceId);
+			return chain.filter(exchange.mutate().request(
+					exchange.getRequest().mutate().header("trace-id", traceId).build()
+			).build());
 		};
 	}
-
 
 }

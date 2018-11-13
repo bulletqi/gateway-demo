@@ -18,7 +18,7 @@ public class FallbackHystrix {
 	 */
 	@RequestMapping("/failback")
 	public CodeMessage hystrixTimeout() {
-		return ExceptionCodes.BUSINESSTIMEOUT;
+		return ExceptionCodes.BUSINESS_TIMEOUT;
 	}
 
 }

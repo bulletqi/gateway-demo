@@ -13,6 +13,7 @@ spring:
   cloud:
     gateway:
       redis-rate-limiter:
+#      配置具体需要流控的路由
         config:
           hello.replenishRate: 2    #每秒流速
           hello.burstCapacity: 2    #桶大小
@@ -56,13 +57,13 @@ spring:
 #        predicates:
 #        - Path=/api/v1/voucher/*
       - id: hello
-        uri: http://www.baidu.com
+        uri: http://localhost:8082
         predicates:
-        - Path=/baidu
-        filters:
-          - StripPrefix=1
+        - Path=/hello
+#        filters:
+#          - StripPrefix=1
       default-filters:
-#        - TokenExtension   #token验证过滤器
+        - TokenExtension   #token验证过滤器
         - name: RequestRateLimiter
           args:
             key-resolver: "#{@apiKeyResolver}"  #根据url路径限流
@@ -97,10 +98,10 @@ hystrix:
             timeoutInMilliseconds: 3000 #设置熔断路由的超时时间
 
 
-#logging:
-#  level:
-#    org.springframework.cloud.gateway: trace
-#    org.springframework.http.server.reactive: debug
-#    org.springframework.web.reactive: debug
-#    reactor.ipc.netty: debug
-#    com.winstar: debug
+logging:
+  level:
+    org.springframework.cloud.gateway: trace
+    org.springframework.http.server.reactive: debug
+    org.springframework.web.reactive: debug
+    reactor.ipc.netty: debug
+    com.winstar: debug
