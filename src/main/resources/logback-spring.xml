@@ -3,13 +3,16 @@
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <!-- encoder 默认配置为PatternLayoutEncoder -->
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%5.5level) %magenta(${PID}) --- [%15.15thread] %cyan(%logger{20}) %boldBlue(%5.5line) : %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%5.5level) %magenta(${PID}) --- [%15.15thread]
+                %cyan(%logger{20}) %boldBlue(%5.5line) : %msg%n
+            </pattern>
         </encoder>
     </appender>
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5.5level ${PID} --- [%15.15thread] %logger{20} %5.5line : %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5.5level ${PID} --- [%15.15thread] %logger{20} %5.5line : %msg%n
+            </pattern>
             <immediateFlush>false</immediateFlush>
             <outputPatternAsHeader>true</outputPatternAsHeader>
         </encoder>
@@ -27,5 +30,9 @@
         <appender-ref ref="stdout"/>
         <appender-ref ref="file"/>
     </root>
+
+    <logger name="com.winstar" additivity="false" level="DEBUG">
+        <appender-ref ref="stdout"/>
+    </logger>
 
 </configuration>

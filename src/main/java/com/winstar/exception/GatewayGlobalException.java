@@ -1,6 +1,6 @@
 package com.winstar.exception;
 
-import com.winstar.entity.Result;
+import com.winstar.entity.CodeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
@@ -50,11 +50,9 @@ public class GatewayGlobalException extends DefaultErrorWebExceptionHandler {
 				.doOnNext((resp) -> logError(request, errorStatus));
 	}
 
-	private Result exceptionHandle(Throwable throwable) {
+	private CodeMessage exceptionHandle(Throwable throwable) {
 		log.error("网关统一异常拦截", throwable);
-		return Result.builder().
-				code(HttpStatus.BAD_REQUEST.value())
-				.message("网关服务暂不可用").build();
+		return ExceptionCodes.GLOBALEXCEPTION;
 	}
 
 }

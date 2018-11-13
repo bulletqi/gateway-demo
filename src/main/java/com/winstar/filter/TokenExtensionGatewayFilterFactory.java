@@ -1,19 +1,36 @@
 package com.winstar.filter;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.winstar.entity.CodeMessage;
+import com.winstar.exception.ExceptionCodes;
+import com.winstar.exception.GatewayException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
+
+import java.util.function.Consumer;
 
 
 /**
@@ -45,7 +62,7 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 				return chain.filter(exchange);
 			} catch (Exception e) {
 				log.error("扩展过滤器异常", e);
-				return buildResponse(exchange);
+				return buildResponse(exchange , e );
 			}
 		};
 	}
@@ -63,9 +80,9 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 			if (StringUtils.isNotBlank(value)) {
 				return value;
 			}
-			throw new RuntimeException("");
+			throw new GatewayException(ExceptionCodes.TOKENERROR);
 		}
-		throw new RuntimeException("");
+		throw new GatewayException(ExceptionCodes.MISSTOKEN);
 	}
 
 	/**
@@ -82,9 +99,22 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 				Flux<DataBuffer> body = request.getBody();
 				DataBuffer dataBuffer = body.blockFirst();
 			}
-			throw new RuntimeException("");
+			throw new GatewayException(ExceptionCodes.GLOBALEXCEPTION);
 		}
-		throw new RuntimeException("");
+		throw new GatewayException(ExceptionCodes.MISSAPPID);
+	}
+
+
+	/**
+	 * 验证签名
+	 * @param param 提交参数
+	 * @param sign 签名
+	 * @param secret 密钥
+	 * @return 是否通过
+	 */
+	public boolean validateSign(String param, String sign, String secret) {
+		HmacUtils hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret);
+		return sign.equals(hmacUtils.hmacHex(param));
 	}
 
 	/**
@@ -95,6 +125,8 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 	 */
 	private void accountIdHandle(HttpHeaders headers, String value) {
 		String accountId = value;
+
+
 		headers.set(ACCOUNT_ID, accountId);
 	}
 
@@ -104,8 +136,25 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 	 * @param exchange exchange对象
 	 * @return 异常信息
 	 */
-	private Mono<Void> buildResponse(ServerWebExchange exchange) {
-		return Mono.empty();
+	private Mono<Void> buildResponse(ServerWebExchange exchange , Exception exception) {
+		ServerHttpResponse response = exchange.getResponse();
+		HttpHeaders httpHeaders = response.getHeaders();
+		httpHeaders.add("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE);
+		CodeMessage codeMessage;
+		if(exception instanceof  GatewayException){
+			codeMessage = ((GatewayException) exception).getCodeMessage();
+		}else{
+			codeMessage = ExceptionCodes.GLOBALEXCEPTION;
+		}
+		ObjectMapper mapper = new ObjectMapper();
+		DataBuffer bodyDataBuffer;
+		try {
+			bodyDataBuffer = response.bufferFactory().wrap(mapper.writeValueAsBytes(codeMessage));
+		} catch (JsonProcessingException e) {
+			log.error("对象转换错误",e);
+			return Mono.empty();
+		}
+		return response.writeWith(Mono.just(bodyDataBuffer));
 	}
 
 }

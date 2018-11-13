@@ -1,11 +1,12 @@
 package com.winstar.entity;
 
-import lombok.Builder;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
-public class Result {
+@AllArgsConstructor
+public class CodeMessage {
 	private Integer code;
 	private String message;
 }
