@@ -25,7 +25,6 @@ public class GatewayException extends RuntimeException {
 		this(codeMessage.getCode(), codeMessage.getMessage(), t);
 	}
 
-
 	public GatewayException(Integer code, String message, Throwable t) {
 		super(message, t);
 		this.codeMessage = new CodeMessage(code,message);

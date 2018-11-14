@@ -57,7 +57,7 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 				log.debug("token验证合法性及参数验参校验filter");
 				ServerHttpRequest request = exchange.getRequest();
 				HttpHeaders headers = request.getHeaders();
-				request = this.test(headers, request);
+//				request = this.test(headers, request);
 //				request = this.requestParamCheck(headers, request);
 //				request = this.accountIdHeader(request, parseToken(headers));
 				return chain.filter(exchange.mutate().request(request).build());
@@ -68,34 +68,33 @@ public class TokenExtensionGatewayFilterFactory extends AbstractGatewayFilterFac
 		};
 	}
 
-	private ServerHttpRequest test(HttpHeaders headers, final ServerHttpRequest request) {
-
-		Flux<DataBuffer> body = request.getBody();
-		AtomicReference<String> bodyRef = new AtomicReference<>();
-		MediaType contentType = request.getHeaders().getContentType();
-
-		contentType.includes(MediaType.MULTIPART_FORM_DATA);
-		body.subscribe(buffer -> {
-			byte[] bytes = new byte[buffer.readableByteCount()];
-			buffer.read(bytes);
-			DataBufferUtils.release(buffer);
-			String requestParam = new String(bytes, StandardCharsets.UTF_8);
-			log.debug("请求提交参数:[{}]", requestParam);
-			bodyRef.set(requestParam);
-		});
-
-		if (StringUtils.isNotBlank(bodyRef.get())) {
-			return new ServerHttpRequestDecorator(request) {
-				@Override
-				public Flux<DataBuffer> getBody() {
-					return Flux.just(wrapDataBuffer(bodyRef.get()));
-				}
-			};
-		} else {
-			return request;
-		}
-
-	}
+//	private ServerHttpRequest test(HttpHeaders headers, final ServerHttpRequest request) {
+//
+//		Flux<DataBuffer> body = request.getBody();
+//		AtomicReference<String> bodyRef = new AtomicReference<>();
+//		MediaType contentType = request.getHeaders().getContentType();
+//
+//		contentType.includes(MediaType.MULTIPART_FORM_DATA);
+//		body.subscribe(buffer -> {
+//			byte[] bytes = new byte[buffer.readableByteCount()];
+//			buffer.read(bytes);
+//			DataBufferUtils.release(buffer);
+//			String requestParam = new String(bytes, StandardCharsets.UTF_8);
+//			log.debug("请求提交参数:[{}]", requestParam);
+//			bodyRef.set(requestParam);
+//		});
+//
+//		if (StringUtils.isNotBlank(bodyRef.get())) {
+//			return new ServerHttpRequestDecorator(request) {
+//				@Override
+//				public Flux<DataBuffer> getBody() {
+//					return Flux.just(wrapDataBuffer(bodyRef.get()));
+//				}
+//			};
+//		} else {
+//			return request;
+//		}
+//	}
 
 	/**
 	 * 包装参数
